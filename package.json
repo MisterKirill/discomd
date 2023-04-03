@@ -1,0 +1,17 @@
+{
+  "name": "discomd",
+  "version": "1.0.0",
+  "description": "Discord bot console client",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": "https://github.com/MisterKirill/discomd.git",
+  "author": "myst",
+  "license": "MIT",
+  "dependencies": {
+    "cli-color": "^2.0.3",
+    "discord.js": "^14.9.0",
+    "keypress": "^0.2.1"
+  }
+}
