@@ -1,3 +1,4 @@
 module.exports = {
-    BOT_TOKEN: ''
+    BOT_TOKEN: '',
+    TARGET_ID: '' // target channelID or userID
 }

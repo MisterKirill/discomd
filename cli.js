@@ -1,36 +1,38 @@
 const clc = require('cli-color')
-const keypress = require('keypress')
+const { EventEmitter } = require('events')
+const readline = require('readline')
 
-keypress(process.stdin)
-const stdin = process.stdin
-const stdout = process.stdout
+readline.emitKeypressEvents(process.stdin)
+const { stdin, stdout } = process
 
 let messages = []
 let message = ''
+let header = ''
 
-function init() {
-    stdin.on('keypress', (ch, key) => {
+const ee = new EventEmitter()
+
+function init(headerText) {
+    header = clc.blue(headerText)
+
+    stdin.on('keypress', async (ch, key) => {
         if(!key) return
 
         if(key.ctrl && key.name == 'c') {
+            appendMessage(clc.green('[LOG] Have a good day!'))
             process.exit(0)
         }
 
-        if(key.name == 'space') {
-            message += ' '
-            return
-        }
-        if(key.name == 'backspace') {
-            message = message.slice(0, -1)
-            return
-        }
-
         if(key.name == 'return') {
-            // send message
-            return
+            ee.emit('send', message)
+            message = ''
+        } else if(key.name == 'backspace') {
+            message = message.slice(0, -1)
+        } else if(key.name == 'space') {
+            message += ' '
+        } else {
+            if(ch) message += ch
+            else return
         }
-
-        message += key.name
 
         reload()
     })
@@ -39,15 +41,20 @@ function init() {
 
     stdin.setRawMode(true)
     stdin.resume()
+    stdin.setEncoding('utf8')
 }
 
 function reload() {
     console.clear()
     
-    if(messages.length > (stdout.rows - 4)) {
+    if(messages.length > (stdout.rows - 5)) {
         // clean messages
-        messages = messages.slice(-Math.abs(stdout.rows - 4))
+        messages = messages.slice(-Math.abs(stdout.rows - 5))
     }
+
+    // draw header
+    stdout.cursorTo(0, 0)
+    stdout.write(header)
 
     // draw messages
     stdout.cursorTo(0, stdout.rows - 4 - messages.length + 1)
@@ -55,19 +62,18 @@ function reload() {
 
     // draw input field
     stdout.cursorTo(0, stdout.rows - 2)
-    stdout.write(clc.cyan('> ') + message)
+    stdout.write(clc.cyan('> ') + message.replace('\n', ''))
 }
 
 function appendMessage(message) {
-    messages.push(message)
+    messages.push(message.replace('\n', ''))
     reload()
 }
 
 module.exports = {
     init,
-    appendMessage
+    appendMessage,
+    ee
 }
 
-init()
-
-setInterval(() => {appendMessage('[LOG] Connected to Discord, enjoy 😎')}, 500)
+// init('CenterDash | #главный')
